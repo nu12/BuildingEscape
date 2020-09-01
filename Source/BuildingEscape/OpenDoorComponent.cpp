@@ -31,13 +31,13 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	FRotator CurrentRotation = GetOwner()->GetActorRotation();
-
-	FRotator TargetRotation = FRotator(0.f, RelativeTargetYaw, 0.f);
-
-	FRotator NewRotation = FMath::Lerp(CurrentRotation, TargetRotation, 0.05);
-
-	GetOwner()->SetActorRotation(NewRotation);
+	GetOwner()->SetActorRotation(
+		FMath::Lerp(								// This function returns a FRotator
+			GetOwner()->GetActorRotation(),			// Current Rotation
+			FRotator(0.f, RelativeTargetYaw, 0.f),	// Target Rotation
+			0.05									// Constant
+		)
+	);
 
 }
 
