@@ -20,13 +20,9 @@ void UOpenDoorComponent::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// ...
+	// Set Door Final Yaw value when opened
+	RelativeTargetYaw = GetOwner()->GetActorRotation().Yaw + DoorOpeningDegree;
 	
-	FRotator CurrentRotation = GetOwner()->GetActorRotation();
-	
-	FRotator OpenRotation = {0.f, 90.f, 0.f};
-
-	GetOwner()->SetActorRelativeRotation(CurrentRotation + OpenRotation);
 }
 
 
@@ -35,6 +31,13 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	// ...
+	FRotator CurrentRotation = GetOwner()->GetActorRotation();
+
+	FRotator TargetRotation = FRotator(0.f, RelativeTargetYaw, 0.f);
+
+	FRotator NewRotation = FMath::Lerp(CurrentRotation, TargetRotation, 0.05);
+
+	GetOwner()->SetActorRotation(NewRotation);
+
 }
 
