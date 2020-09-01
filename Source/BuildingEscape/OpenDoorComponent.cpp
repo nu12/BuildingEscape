@@ -21,7 +21,8 @@ void UOpenDoorComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// Set Door Final Yaw value when opened
-	RelativeTargetYaw = GetOwner()->GetActorRotation().Yaw + DoorOpeningDegree;
+	InitialYaw = GetOwner()->GetActorRotation().Yaw;
+	TargetYaw += InitialYaw;
 	
 }
 
@@ -37,8 +38,8 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	// FMath::FInterpConstantTo -> Linear interpolation behavior	===> FMath::FInterpConstantTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 45);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
 
 	FRotator CurrentRotation = GetOwner()->GetActorRotation();
-	FRotator TargetRotation = FRotator(0.f, RelativeTargetYaw, 0.f);
-	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 2);
+	FRotator TargetRotation = FRotator(0.f, TargetYaw, 0.f);
+	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, TargetYaw, DeltaTime, 2);
 	
 	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
 }
