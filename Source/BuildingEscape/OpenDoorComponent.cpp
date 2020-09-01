@@ -31,13 +31,15 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	GetOwner()->SetActorRotation(
-		FMath::Lerp(								// This function returns a FRotator
-			GetOwner()->GetActorRotation(),			// Current Rotation
-			FRotator(0.f, RelativeTargetYaw, 0.f),	// Target Rotation
-			0.05									// Constant
-		)
-	);
+	// Interpolation options
+	// FMath::Lerp -> Not plataform independent						===> FMath::Lerp(CurrentRotation, TargetRotation, 0.05); GetOwner()->SetActorRotation(FMath::Lerp(CurrentRotation, TargetRotation, 0.05));
+	// FMath::FInterpTo -> Same exponential interpolation behavior	===> FMath::FInterpTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 2);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
+	// FMath::FInterpConstantTo -> Linear interpolation behavior	===> FMath::FInterpConstantTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 45);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
 
+	FRotator CurrentRotation = GetOwner()->GetActorRotation();
+	FRotator TargetRotation = FRotator(0.f, RelativeTargetYaw, 0.f);
+	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 2);
+	
+	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
 }
 
