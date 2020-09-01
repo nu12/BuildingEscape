@@ -5,7 +5,6 @@
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
-#include "Kismet/GameplayStatics.h"
 
 // Sets default values for this component's properties
 UOpenDoorComponent::UOpenDoorComponent()
@@ -25,7 +24,7 @@ void UOpenDoorComponent::BeginPlay()
 	// Set Door Final Yaw value when opened
 	InitialYaw = GetOwner()->GetActorRotation().Yaw;
 	TargetYaw += InitialYaw;
-	ActorThatOpens = UGameplayStatics::GetPlayerController(GetWorld(), 0)->GetPawn();
+	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 }
 
 
