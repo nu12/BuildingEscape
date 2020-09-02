@@ -33,14 +33,25 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
-	
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
 
-	FVector LineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * 100.f;
-
-	UE_LOG(LogTemp, Warning, TEXT(": %s"), *PlayerViewPointRotation.Vector().ToString());
-
+	FVector LineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
 	DrawDebugLine(GetWorld(), PlayerViewPointLocation, LineEnd, FColor::Red, false, 1.f, 1, 10.f);
 
+	FHitResult Hit;
+	GetWorld()->LineTraceSingleByChannel(
+		Hit,
+		PlayerViewPointLocation,
+		LineEnd,
+		ECollisionChannel::ECC_PhysicsBody,
+		FCollisionQueryParams(
+			FName(TEXT("")),	// This is not using Tag
+			false,				// No complex collision (visibility vs collision)
+			GetOwner()			// Ignore self as the line tracing begins inside the pawn
+		)
+	);
+	
+	if (!Hit.GetActor()) return;
+	UE_LOG(LogTemp, Warning, TEXT("Hit: %f %s"), GetWorld()->GetTimeSeconds(), *Hit.GetActor()->GetName());
 }
 
