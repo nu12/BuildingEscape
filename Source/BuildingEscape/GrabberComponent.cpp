@@ -23,6 +23,16 @@ void UGrabberComponent::BeginPlay()
 
 	PhysicsHandler = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
 	if(!PhysicsHandler) UE_LOG(LogTemp, Error, TEXT("Physics handler component not found!"));
+
+	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
+	if (!InputComponent) UE_LOG(LogTemp, Error, TEXT("Input component not found!"));
+
+	InputComponent->BindAction(
+		FName(TEXT("GrabInput")),	// This is the same name assigned to the input in Project Settings > Input
+		IE_Pressed,					// Type of input: pressed, release, etc
+		this,						// References self
+		&UGrabberComponent::Grab	// Method to be executed
+	);
 	
 }
 
@@ -56,3 +66,7 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	UE_LOG(LogTemp, Warning, TEXT("Hit: %f %s"), GetWorld()->GetTimeSeconds(), *Hit.GetActor()->GetName());
 }
 
+void UGrabberComponent::Grab() 
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab!"));
+}

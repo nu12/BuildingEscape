@@ -29,4 +29,8 @@ private:
 	float Reach = 100.f;
 		
 	UPhysicsHandleComponent* PhysicsHandler = nullptr;
+	UInputComponent* InputComponent = nullptr; // All actor have input component by default.
+
+
+	void Grab();
 };
