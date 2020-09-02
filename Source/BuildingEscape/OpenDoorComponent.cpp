@@ -23,8 +23,11 @@ void UOpenDoorComponent::BeginPlay()
 
 	// Set Door Final Yaw value when opened
 	InitialYaw = GetOwner()->GetActorRotation().Yaw;
-	TargetYaw += InitialYaw;
+	OpenAngle += InitialYaw;
 	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	// Set DoorLastOpened
+	DoorLastOpened = GetWorld()->GetTimeSeconds();
 }
 
 
@@ -47,9 +50,13 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	if (PressurePlate->IsOverlappingActor(ActorThatOpens)) 
 	{
 		OpenDoor(DeltaTime);
+		DoorLastOpened = GetWorld()->GetTimeSeconds();
 	}else
 	{
-		CloseDoor(DeltaTime);
+		if(GetWorld()->GetTimeSeconds() > (DoorLastOpened + DoorCloseDelay))
+		{
+			CloseDoor(DeltaTime);
+		}
 	}
 }
 
@@ -61,8 +68,8 @@ void UOpenDoorComponent::OpenDoor(float DeltaTime)
 	// FMath::FInterpConstantTo -> Linear interpolation behavior	===> FMath::FInterpConstantTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 45);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
 
 	FRotator CurrentRotation = GetOwner()->GetActorRotation();
-	FRotator TargetRotation = FRotator(0.f, TargetYaw, 0.f);
-	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, TargetYaw, DeltaTime, 2);
+	FRotator TargetRotation = FRotator(0.f, OpenAngle, 0.f);
+	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, OpenAngle, DeltaTime, DoorOpenSpeed);
 
 	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
 }
@@ -71,7 +78,7 @@ void UOpenDoorComponent::CloseDoor(float DeltaTime)
 {
 	FRotator CurrentRotation = GetOwner()->GetActorRotation();
 	FRotator TargetRotation = FRotator(0.f, InitialYaw, 0.f);
-	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, InitialYaw, DeltaTime, 2);
+	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, InitialYaw, DeltaTime, DoorCloseSpeed);
 
 	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
 }

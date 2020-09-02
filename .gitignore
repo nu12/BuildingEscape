@@ -2,6 +2,10 @@
 **/NonFree/*
 !**/NonFree/.keep
 
+# TwinmotionMaterials
+Content/Developers/*
+Content/TwinmotionMaterials/*
+
 # Visual Studio 2015 user specific files
 .vs/
 
