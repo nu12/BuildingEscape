@@ -33,6 +33,13 @@ void UGrabberComponent::BeginPlay()
 		this,						// References self
 		&UGrabberComponent::Grab	// Method to be executed
 	);
+
+	InputComponent->BindAction(
+		FName(TEXT("GrabInput")),
+		IE_Released,
+		this,
+		&UGrabberComponent::Release
+	);
 	
 }
 
@@ -69,4 +76,9 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 void UGrabberComponent::Grab() 
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab!"));
+}
+
+void UGrabberComponent::Release()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Release!"));
 }
