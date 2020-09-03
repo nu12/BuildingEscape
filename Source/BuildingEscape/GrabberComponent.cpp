@@ -49,17 +49,35 @@ void UGrabberComponent::SetupInputBinding() const {
 void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	if (PhysicsHandler->GetGrabbedComponent()) {
+		FVector PlayerViewPointLocation;
+		FRotator PlayerViewPointRotation;
+		GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
+
+		FVector LineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+		PhysicsHandler->SetTargetLocation(LineEnd);
+	}
 }
 
 void UGrabberComponent::Grab() 
 {
 	UE_LOG(LogTemp, Warning, TEXT("Grab!"));
-	GetFirstHitBodyInReach();
+	FHitResult HitResult = GetFirstHitBodyInReach();
+
+	if (!HitResult.GetActor()) return;
+
+	PhysicsHandler->GrabComponentAtLocation(
+		HitResult.GetComponent(),
+		NAME_None,
+		HitResult.GetActor()->GetActorLocation()
+	);
 }
 
 void UGrabberComponent::Release()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Release!"));
+	PhysicsHandler->ReleaseComponent();
 }
 
 FHitResult UGrabberComponent::GetFirstHitBodyInReach() const {
