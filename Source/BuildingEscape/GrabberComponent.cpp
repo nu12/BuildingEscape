@@ -51,12 +51,8 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	if (PhysicsHandler->GetGrabbedComponent()) {
-		FVector PlayerViewPointLocation;
-		FRotator PlayerViewPointRotation;
-		GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
-
-		FVector LineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
-		PhysicsHandler->SetTargetLocation(LineEnd);
+		FLineTraceLocation LineTraceLocation = GetLineTraceLocation();
+		PhysicsHandler->SetTargetLocation(LineTraceLocation.LineTraceEndLocation);
 	}
 }
 
@@ -81,17 +77,13 @@ void UGrabberComponent::Release()
 }
 
 FHitResult UGrabberComponent::GetFirstHitBodyInReach() const {
-	FVector PlayerViewPointLocation;
-	FRotator PlayerViewPointRotation;
-	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
-
-	FVector LineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
-
+	
+	FLineTraceLocation LineTraceLocation = GetLineTraceLocation();
 	FHitResult Hit;
 	GetWorld()->LineTraceSingleByChannel(
 		Hit,
-		PlayerViewPointLocation,
-		LineEnd,
+		LineTraceLocation.PlayerViewPointLocation,
+		LineTraceLocation.LineTraceEndLocation,
 		ECollisionChannel::ECC_PhysicsBody,
 		FCollisionQueryParams(
 			FName(TEXT("")),	// This is not using Tag
@@ -104,4 +96,12 @@ FHitResult UGrabberComponent::GetFirstHitBodyInReach() const {
 	UE_LOG(LogTemp, Warning, TEXT("Hit: %f %s"), GetWorld()->GetTimeSeconds(), *Hit.GetActor()->GetName());
 
 	return Hit;
+}
+
+FLineTraceLocation UGrabberComponent::GetLineTraceLocation() const{
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
+	FVector LineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
+	return FLineTraceLocation{ PlayerViewPointLocation , PlayerViewPointRotation , LineEnd };
 }

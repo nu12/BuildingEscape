@@ -7,6 +7,11 @@
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "GrabberComponent.generated.h"
 
+struct FLineTraceLocation {
+	FVector PlayerViewPointLocation;
+	FRotator PlayerViewPointRotation;
+	FVector LineTraceEndLocation;
+};
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BUILDINGESCAPE_API UGrabberComponent : public UActorComponent
@@ -37,4 +42,5 @@ private:
 	void SetupComponents();
 	void SetupInputBinding() const;
 	FHitResult GetFirstHitBodyInReach() const;
+	FLineTraceLocation GetLineTraceLocation() const;
 };
