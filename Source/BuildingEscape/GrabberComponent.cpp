@@ -11,8 +11,6 @@ UGrabberComponent::UGrabberComponent()
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
-
-	// ...
 }
 
 
@@ -20,13 +18,18 @@ UGrabberComponent::UGrabberComponent()
 void UGrabberComponent::BeginPlay()
 {
 	Super::BeginPlay();
+	SetupComponents();
+	SetupInputBinding();
+}
 
+void UGrabberComponent::SetupComponents() {
 	PhysicsHandler = GetOwner()->FindComponentByClass<UPhysicsHandleComponent>();
 	if(!PhysicsHandler) UE_LOG(LogTemp, Error, TEXT("Physics handler component not found!"));
 
 	InputComponent = GetOwner()->FindComponentByClass<UInputComponent>();
 	if (!InputComponent) UE_LOG(LogTemp, Error, TEXT("Input component not found!"));
-
+}
+void UGrabberComponent::SetupInputBinding() const {
 	InputComponent->BindAction(
 		FName(TEXT("GrabInput")),	// This is the same name assigned to the input in Project Settings > Input
 		IE_Pressed,					// Type of input: pressed, release, etc
@@ -40,21 +43,31 @@ void UGrabberComponent::BeginPlay()
 		this,
 		&UGrabberComponent::Release
 	);
-	
 }
-
 
 // Called every frame
 void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+}
 
+void UGrabberComponent::Grab() 
+{
+	UE_LOG(LogTemp, Warning, TEXT("Grab!"));
+	GetFirstHitBodyInReach();
+}
+
+void UGrabberComponent::Release()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Release!"));
+}
+
+FHitResult UGrabberComponent::GetFirstHitBodyInReach() const {
 	FVector PlayerViewPointLocation;
 	FRotator PlayerViewPointRotation;
 	GetWorld()->GetFirstPlayerController()->GetPlayerViewPoint(PlayerViewPointLocation, PlayerViewPointRotation);
 
 	FVector LineEnd = PlayerViewPointLocation + PlayerViewPointRotation.Vector() * Reach;
-	DrawDebugLine(GetWorld(), PlayerViewPointLocation, LineEnd, FColor::Red, false, 1.f, 1, 10.f);
 
 	FHitResult Hit;
 	GetWorld()->LineTraceSingleByChannel(
@@ -69,16 +82,8 @@ void UGrabberComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAct
 		)
 	);
 	
-	if (!Hit.GetActor()) return;
+	if (!Hit.GetActor()) return Hit;
 	UE_LOG(LogTemp, Warning, TEXT("Hit: %f %s"), GetWorld()->GetTimeSeconds(), *Hit.GetActor()->GetName());
-}
 
-void UGrabberComponent::Grab() 
-{
-	UE_LOG(LogTemp, Warning, TEXT("Grab!"));
-}
-
-void UGrabberComponent::Release()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Release!"));
+	return Hit;
 }
