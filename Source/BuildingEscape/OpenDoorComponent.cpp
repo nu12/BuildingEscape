@@ -31,6 +31,8 @@ void UOpenDoorComponent::BeginPlay()
 
 void UOpenDoorComponent::SetupPointers() {
 	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+
+	AudioComponent = GetOwner()->FindComponentByClass<UAudioComponent>();
 }
 
 // Called every frame
@@ -44,10 +46,18 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	{
 		OpenDoor(DeltaTime);
 		DoorLastOpened = GetWorld()->GetTimeSeconds();
+		if (IsDoorClosed)
+		{
+			PlaySound();
+		}
 	}else
 	{
 		if(GetWorld()->GetTimeSeconds() > (DoorLastOpened + DoorCloseDelay))
 		{
+			if (!IsDoorClosed)
+			{
+				PlaySound();
+			}
 			CloseDoor(DeltaTime);
 		}
 	}
@@ -63,6 +73,12 @@ bool UOpenDoorComponent::ArePointersAssigned() const{
 	if (!ActorThatOpens)
 	{
 		UE_LOG(LogTemp, Error, TEXT("OpenDoorComponent needs assigned ActorThatOpens for %s"), *GetOwner()->GetName());
+		return false;
+	}
+
+	if (!AudioComponent)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OpenDoorComponent needs assigned AudioComponent for %s"), *GetOwner()->GetName());
 		return false;
 	}
 	return true;
@@ -117,4 +133,10 @@ void UOpenDoorComponent::CloseDoor(float DeltaTime)
 	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, InitialYaw, DeltaTime, DoorCloseSpeed);
 
 	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
+}
+
+void UOpenDoorComponent::PlaySound()
+{
+	AudioComponent->Play();
+	IsDoorClosed = !IsDoorClosed;
 }

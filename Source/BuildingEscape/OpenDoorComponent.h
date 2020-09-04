@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "Engine/TriggerVolume.h"
+#include "Components/AudioComponent.h"
 #include "OpenDoorComponent.generated.h"
 
 
@@ -24,7 +25,7 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
-	void SetupPointers();
+	
 
 public:	
 	// Called every frame
@@ -32,19 +33,36 @@ public:
 
 
 private:
+	// Setup
 	float InitialYaw;
 	float DoorLastOpened = 0.f;
-
+	void SetupPointers();
 	bool ArePointersAssigned() const;
+	
+	// Play sound components
+	bool IsDoorClosed = true;
+	UPROPERTY()
+	UAudioComponent* AudioComponent = nullptr;
+	void PlaySound();
+
+	
+	// Trigger Door Open/Close
 	float GetActorsMass(TArray<AActor*> ActorsInPressurePlate) const;
 	float GetActorsMassWithTag(TArray<AActor*> ActorsInPressurePlate) const;
-
 	UPROPERTY(EditAnywhere)
 	ATriggerVolume* PressurePlate;
 
-	UPROPERTY(EditAnywhere)
-	AActor* ActorThatOpens;
+	UPROPERTY()
+	AActor* ActorThatOpens = nullptr;
 
+	// If using the following two, only actor that are properly tagged will open the door
+	UPROPERTY(EditAnywhere)
+	bool bDoorUseTag = false;
+
+	UPROPERTY(EditAnywhere)
+	FName TagThatOpensTheDoor = TEXT("");
+
+	// Component Editable components
 	UPROPERTY(EditAnywhere)
 	float OpenAngle = 90.f;
 
@@ -59,11 +77,4 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float MassToOpenDoor = 50.f;
-
-	// If using the following two, only actor that are properly tagged will open the door
-	UPROPERTY(EditAnywhere)
-	bool bDoorUseTag = false;
-
-	UPROPERTY(EditAnywhere)
-	FName TagThatOpensTheDoor = TEXT("");
 };
