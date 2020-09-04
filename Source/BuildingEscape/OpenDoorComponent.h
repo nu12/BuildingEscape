@@ -24,14 +24,18 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	void SetupPointers();
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
+
 private:
 	float InitialYaw;
-	float DoorLastOpened;
+	float DoorLastOpened = 0.f;
 
+	bool ArePointersAssigned() const;
 	float GetActorsMass(TArray<AActor*> ActorsInPressurePlate) const;
 	float GetActorsMassWithTag(TArray<AActor*> ActorsInPressurePlate) const;
 

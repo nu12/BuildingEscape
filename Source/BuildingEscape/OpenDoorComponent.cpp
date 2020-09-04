@@ -24,30 +24,23 @@ void UOpenDoorComponent::BeginPlay()
 	// Set Door Final Yaw value when opened
 	InitialYaw = GetOwner()->GetActorRotation().Yaw;
 	OpenAngle += InitialYaw;
-	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
 
-	// Set DoorLastOpened
-	DoorLastOpened = GetWorld()->GetTimeSeconds();
+	SetupPointers();
 }
 
+
+void UOpenDoorComponent::SetupPointers() {
+	ActorThatOpens = GetWorld()->GetFirstPlayerController()->GetPawn();
+}
 
 // Called every frame
 void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
-	if (!PressurePlate)
-	{
-		UE_LOG(LogTemp, Error, TEXT("OpenDoorComponent needs assigned PressurePlate for %s"), *GetOwner()->GetName());
-		return;
-	}
 
-	if (!ActorThatOpens)
-	{
-		UE_LOG(LogTemp, Error, TEXT("OpenDoorComponent needs assigned ActorThatOpens for %s"), *GetOwner()->GetName());
-		return;
-	}
+	if (!ArePointersAssigned()) return;
 	
-	if (PressurePlate && GetMassInsideVolume() > MassToOpenDoor)
+	if (GetMassInsideVolume() >= MassToOpenDoor)
 	{
 		OpenDoor(DeltaTime);
 		DoorLastOpened = GetWorld()->GetTimeSeconds();
@@ -60,27 +53,19 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 	}
 }
 
-void UOpenDoorComponent::OpenDoor(float DeltaTime)
-{
-	// Interpolation options
-	// FMath::Lerp -> Not plataform independent						===> FMath::Lerp(CurrentRotation, TargetRotation, 0.05); GetOwner()->SetActorRotation(FMath::Lerp(CurrentRotation, TargetRotation, 0.05));
-	// FMath::FInterpTo -> Same exponential interpolation behavior	===> FMath::FInterpTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 2);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
-	// FMath::FInterpConstantTo -> Linear interpolation behavior	===> FMath::FInterpConstantTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 45);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
+bool UOpenDoorComponent::ArePointersAssigned() const{
+	if (!PressurePlate)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OpenDoorComponent needs assigned PressurePlate for %s"), *GetOwner()->GetName());
+		return false;
+	}
 
-	FRotator CurrentRotation = GetOwner()->GetActorRotation();
-	FRotator TargetRotation = FRotator(0.f, OpenAngle, 0.f);
-	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, OpenAngle, DeltaTime, DoorOpenSpeed);
-
-	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
-}
-
-void UOpenDoorComponent::CloseDoor(float DeltaTime)
-{
-	FRotator CurrentRotation = GetOwner()->GetActorRotation();
-	FRotator TargetRotation = FRotator(0.f, InitialYaw, 0.f);
-	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, InitialYaw, DeltaTime, DoorCloseSpeed);
-
-	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
+	if (!ActorThatOpens)
+	{
+		UE_LOG(LogTemp, Error, TEXT("OpenDoorComponent needs assigned ActorThatOpens for %s"), *GetOwner()->GetName());
+		return false;
+	}
+	return true;
 }
 
 float UOpenDoorComponent::GetMassInsideVolume() const {
@@ -95,7 +80,6 @@ float UOpenDoorComponent::GetActorsMass(TArray<AActor*> ActorsInPressurePlate) c
 	for (AActor* ActorInPressurePlate : ActorsInPressurePlate) {
 		TotalMass += ActorInPressurePlate->FindComponentByClass<UPrimitiveComponent>()->GetMass();
 	}
-	UE_LOG(LogTemp, Warning, TEXT("GetActorMass %f"), TotalMass);
 	return TotalMass;
 }
 
@@ -105,9 +89,32 @@ float UOpenDoorComponent::GetActorsMassWithTag(TArray<AActor*> ActorsInPressureP
 		for (FName Tag : ActorInPressurePlate->Tags) {
 			if (Tag.IsEqual(TagThatOpensTheDoor)) {
 				TotalMass += ActorInPressurePlate->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+				break;
 			}
 		}
 	}
-	UE_LOG(LogTemp, Warning, TEXT("GetActorMassWithTag %f"), TotalMass);
 	return TotalMass;
+}
+
+/* Interpolation options
+ FMath::Lerp -> Not plataform independent						===> FMath::Lerp(CurrentRotation, TargetRotation, 0.05); GetOwner()->SetActorRotation(FMath::Lerp(CurrentRotation, TargetRotation, 0.05));
+ FMath::FInterpTo -> Same exponential interpolation behavior	===> FMath::FInterpTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 2);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f));
+ FMath::FInterpConstantTo -> Linear interpolation behavior		===> FMath::FInterpConstantTo(CurrentRotation.Yaw, RelativeTargetYaw, DeltaTime, 45);GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition,0.f)); */
+void UOpenDoorComponent::OpenDoor(float DeltaTime)
+{
+	FRotator CurrentRotation = GetOwner()->GetActorRotation();
+	FRotator TargetRotation = FRotator(0.f, OpenAngle, 0.f);
+	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, OpenAngle, DeltaTime, DoorOpenSpeed);
+
+	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
+	
+}
+
+void UOpenDoorComponent::CloseDoor(float DeltaTime)
+{
+	FRotator CurrentRotation = GetOwner()->GetActorRotation();
+	FRotator TargetRotation = FRotator(0.f, InitialYaw, 0.f);
+	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, InitialYaw, DeltaTime, DoorCloseSpeed);
+
+	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
 }
