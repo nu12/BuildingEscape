@@ -18,6 +18,7 @@ public:
 	UOpenDoorComponent();
 	void OpenDoor(float DeltaTime);
 	void CloseDoor(float DeltaTime);
+	float GetMassInsideVolume() const;
 
 protected:
 	// Called when the game starts
@@ -30,6 +31,9 @@ public:
 private:
 	float InitialYaw;
 	float DoorLastOpened;
+
+	float GetActorsMass(TArray<AActor*> ActorsInPressurePlate) const;
+	float GetActorsMassWithTag(TArray<AActor*> ActorsInPressurePlate) const;
 
 	UPROPERTY(EditAnywhere)
 	ATriggerVolume* PressurePlate;
@@ -48,4 +52,14 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	float DoorCloseSpeed = 2.2f;
+
+	UPROPERTY(EditAnywhere)
+	float MassToOpenDoor = 50.f;
+
+	// If using the following two, only actor that are properly tagged will open the door
+	UPROPERTY(EditAnywhere)
+	bool bDoorUseTag = false;
+
+	UPROPERTY(EditAnywhere)
+	FName TagThatOpensTheDoor = TEXT("");
 };

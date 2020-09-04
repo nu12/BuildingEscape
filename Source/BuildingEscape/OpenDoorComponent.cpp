@@ -1,10 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "OpenDoorComponent.h"
 #include "GameFramework/Actor.h"
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
+#include "Components/PrimitiveComponent.h"
+#include "OpenDoorComponent.h"
 
 // Sets default values for this component's properties
 UOpenDoorComponent::UOpenDoorComponent()
@@ -13,7 +14,6 @@ UOpenDoorComponent::UOpenDoorComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	// ...
 }
 
 // Called when the game starts
@@ -47,7 +47,7 @@ void UOpenDoorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FAc
 		return;
 	}
 	
-	if (PressurePlate->IsOverlappingActor(ActorThatOpens)) 
+	if (PressurePlate && GetMassInsideVolume() > MassToOpenDoor)
 	{
 		OpenDoor(DeltaTime);
 		DoorLastOpened = GetWorld()->GetTimeSeconds();
@@ -81,4 +81,33 @@ void UOpenDoorComponent::CloseDoor(float DeltaTime)
 	float NextYawPosition = FMath::FInterpTo(CurrentRotation.Yaw, InitialYaw, DeltaTime, DoorCloseSpeed);
 
 	GetOwner()->SetActorRotation(FRotator(0.f, NextYawPosition, 0.f));
+}
+
+float UOpenDoorComponent::GetMassInsideVolume() const {
+	TArray<AActor*> ActorsInPressurePlate;
+	PressurePlate->GetOverlappingActors(ActorsInPressurePlate);
+
+	if (bDoorUseTag) return GetActorsMassWithTag(ActorsInPressurePlate);
+	return GetActorsMass(ActorsInPressurePlate);
+}
+float UOpenDoorComponent::GetActorsMass(TArray<AActor*> ActorsInPressurePlate) const {
+	float TotalMass = 0.f;
+	for (AActor* ActorInPressurePlate : ActorsInPressurePlate) {
+		TotalMass += ActorInPressurePlate->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+	}
+	UE_LOG(LogTemp, Warning, TEXT("GetActorMass %f"), TotalMass);
+	return TotalMass;
+}
+
+float UOpenDoorComponent::GetActorsMassWithTag(TArray<AActor*> ActorsInPressurePlate) const {
+	float TotalMass = 0.f;
+	for (AActor* ActorInPressurePlate : ActorsInPressurePlate) {
+		for (FName Tag : ActorInPressurePlate->Tags) {
+			if (Tag.IsEqual(TagThatOpensTheDoor)) {
+				TotalMass += ActorInPressurePlate->FindComponentByClass<UPrimitiveComponent>()->GetMass();
+			}
+		}
+	}
+	UE_LOG(LogTemp, Warning, TEXT("GetActorMassWithTag %f"), TotalMass);
+	return TotalMass;
 }
